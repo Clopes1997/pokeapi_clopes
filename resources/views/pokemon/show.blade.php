@@ -1,68 +1,107 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Detalhes do Pokémon
-        </h2>
+        <h2 class="page-title">Detalhes do Pokémon</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if(session('success'))
-                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-                    {{ session('success') }}
-                </div>
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-error">
+            <ul>
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="card" style="position: relative;">
+        @can('favorite', $pokemon)
+            @if(auth()->user()->favorites->contains($pokemon))
+                <form method="POST" action="{{ route('pokemon.unfavorite', $pokemon->id) }}" class="favorite-form" style="position: absolute; top: 1rem; right: 1rem;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 2rem; color: #FFD700; padding: 0; line-height: 1;">★</button>
+                </form>
+            @else
+                <form method="POST" action="{{ route('pokemon.favorite', $pokemon->id) }}" class="favorite-form" style="position: absolute; top: 1rem; right: 1rem;">
+                    @csrf
+                    <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 2rem; color: #ccc; padding: 0; line-height: 1;">☆</button>
+                </form>
             @endif
+        @endcan
 
-            @if($errors->any())
-                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    <ul>
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+        <h1 class="page-title">{{ $pokemon->name }}</h1>
+        
+        @if($pokemon->sprite)
+            <img src="{{ $pokemon->sprite }}" alt="{{ $pokemon->name }}">
+        @endif
 
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <h1 class="text-2xl font-bold mb-4">{{ $pokemon->name }}</h1>
-                    
-                    @if($pokemon->sprite)
-                        <img src="{{ $pokemon->sprite }}" alt="{{ $pokemon->name }}" class="mb-4">
-                    @endif
+        <div class="grid">
+            <div>
+                <p class="section-text"><strong>Altura:</strong> {{ $pokemon->height }}</p>
+            </div>
+            <div>
+                <p class="section-text"><strong>Peso:</strong> {{ $pokemon->weight }}</p>
+            </div>
+        </div>
 
-                    <p><strong>Altura:</strong> {{ $pokemon->height }}</p>
-                    <p><strong>Peso:</strong> {{ $pokemon->weight }}</p>
+        <div class="stack section-group">
+            <h2 class="section-title">Tipos</h2>
+            <div class="row">
+                @foreach($pokemon->types as $type)
+                    <span class="pill">{{ $type->name }}</span>
+                @endforeach
+            </div>
+        </div>
 
-                    <div class="mt-4">
-                        <h2 class="text-xl font-bold mb-2">Tipos:</h2>
-                        <ul>
-                            @foreach($pokemon->types as $type)
-                                <li>{{ $type->name }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+        <div class="stack section-group">
+            <h2 class="section-title">Movimentos</h2>
+            <div class="row">
+                @foreach($pokemon->moves as $move)
+                    <span class="pill">{{ $move->name }}</span>
+                @endforeach
+            </div>
+        </div>
 
-                    <div class="mt-4">
-                        <h2 class="text-xl font-bold mb-2">Movimentos:</h2>
-                        <ul>
-                            @foreach($pokemon->moves as $move)
-                                <li>{{ $move->name }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-
-                    <div class="mt-4">
-                        <h2 class="text-xl font-bold mb-2">Habilidades:</h2>
-                        <ul>
-                            @foreach($pokemon->abilities as $ability)
-                                <li>{{ $ability->name }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
+        <div class="stack section-group">
+            <h2 class="section-title">Habilidades</h2>
+            <div class="row">
+                @foreach($pokemon->abilities as $ability)
+                    <span class="pill">{{ $ability->name }}</span>
+                @endforeach
             </div>
         </div>
     </div>
-</x-app-layout>
 
+    <script>
+        document.querySelectorAll('.favorite-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                fetch(this.action, {
+                    method: this.method,
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(() => {
+                    window.location.reload();
+                });
+            });
+        });
+
+        const successAlert = document.querySelector('.alert-success');
+        if (successAlert) {
+            setTimeout(() => {
+                successAlert.style.transition = 'opacity 0.5s';
+                successAlert.style.opacity = '0';
+                setTimeout(() => successAlert.remove(), 500);
+            }, 1000);
+        }
+    </script>
+</x-app-layout>

@@ -1,59 +1,105 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Lista de Pokémon
-        </h2>
+        <h2 class="page-title">Lista de Pokémon</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if(session('success'))
-                <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            @if($errors->any())
-                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-                    <ul>
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <form method="GET" action="{{ route('pokemon.index') }}" class="mb-4">
-                        <div class="flex gap-4 mb-4">
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por nome" class="rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-                            <input type="text" name="type" value="{{ request('type') }}" placeholder="Filtrar por tipo" class="rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md">Buscar</button>
-                        </div>
-                    </form>
-
-                    @if($pokemon->count() > 0)
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            @foreach($pokemon as $p)
-                                <div class="border rounded-lg p-4">
-                                    <h3 class="font-bold">{{ $p->name }}</h3>
-                                    <p>Altura: {{ $p->height }}</p>
-                                    <p>Peso: {{ $p->weight }}</p>
-                                    <a href="{{ route('pokemon.show', $p->id) }}" class="text-blue-500">Ver detalhes</a>
-                                </div>
-                            @endforeach
-                        </div>
-
-                        <div class="mt-4">
-                            {{ $pokemon->links() }}
-                        </div>
-                    @else
-                        <p>Nenhum Pokémon encontrado.</p>
-                    @endif
-                </div>
-            </div>
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
         </div>
-    </div>
-</x-app-layout>
+    @endif
 
+    @if($errors->any())
+        <div class="alert alert-error">
+            <ul>
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="card">
+        <form method="GET" action="{{ route('pokemon.index') }}" class="search-form">
+            <div class="row">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Buscar por nome" class="input">
+                <input type="text" name="type" value="{{ request('type') }}" placeholder="Filtrar por tipo" class="input">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+        </form>
+    </div>
+
+    @if($pokemon->count() > 0)
+        <div class="grid grid-3">
+                @foreach($pokemon as $p)
+                    <div class="card pokemon-card" style="position: relative;">
+                        <div class="pokemon-info">
+                            <h3 class="section-title">{{ $p->name }}</h3>
+                            <p class="section-text">Altura: {{ $p->height }}</p>
+                            <p class="section-text">Peso: {{ $p->weight }}</p>
+                            <a href="{{ route('pokemon.show', $p->id) }}" class="text-link">Ver detalhes</a>
+                        </div>
+                        @if($p->sprite)
+                            <img src="{{ $p->sprite }}" alt="{{ $p->name }}" class="pokemon-sprite">
+                        @endif
+                        
+                        @if(auth()->user()->roles()->where('name', 'admin')->exists())
+                            <div style="position: absolute; bottom: 0.5rem; right: 2.5rem;">
+                                <span style="font-size: 1.2rem; color: #ef4444; cursor: default;" title="Excluir">✕</span>
+                            </div>
+                        @endif
+
+                        @can('favorite', $p)
+                            @if(auth()->user()->favorites->contains($p))
+                                <form method="POST" action="{{ route('pokemon.unfavorite', $p->id) }}" class="favorite-form" style="position: absolute; bottom: 0.5rem; right: 0.5rem;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #FFD700; padding: 0; line-height: 1;">★</button>
+                                </form>
+                            @else
+                                <form method="POST" action="{{ route('pokemon.favorite', $p->id) }}" class="favorite-form" style="position: absolute; bottom: 0.5rem; right: 0.5rem;">
+                                    @csrf
+                                    <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #ccc; padding: 0; line-height: 1;">☆</button>
+                                </form>
+                            @endif
+                        @endcan
+                    </div>
+                @endforeach
+        </div>
+
+        <div class="pagination-wrapper">
+            {{ $pokemon->links() }}
+        </div>
+    @else
+        <div class="card">
+            <p class="section-text">Nenhum Pokémon encontrado.</p>
+        </div>
+    @endif
+
+    <script>
+        document.querySelectorAll('.favorite-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                fetch(this.action, {
+                    method: this.method,
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(() => {
+                    window.location.reload();
+                });
+            });
+        });
+
+        const successAlert = document.querySelector('.alert-success');
+        if (successAlert) {
+            setTimeout(() => {
+                successAlert.style.transition = 'opacity 0.5s';
+                successAlert.style.opacity = '0';
+                setTimeout(() => successAlert.remove(), 500);
+            }, 1000);
+        }
+    </script>
+</x-app-layout>
