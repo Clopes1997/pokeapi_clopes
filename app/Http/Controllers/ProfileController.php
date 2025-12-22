@@ -3,21 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
-use App\Http\Requests\Profile\DeleteAccountRequest;
-use App\Services\Profile\AccountDeletionService;
-use App\Services\Profile\ProfileUpdateService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    public function __construct(
-        private ProfileUpdateService $profileUpdateService,
-        private AccountDeletionService $accountDeletionService
-    ) {}
-
+    /**
+     * Display the user's profile form.
+     */
     public function edit(Request $request): View
     {
         return view('profile.edit', [
@@ -25,23 +21,40 @@ class ProfileController extends Controller
         ]);
     }
 
-    public function update(ProfileUpdateRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
+    /**
+     * Update the user's profile information.
+     */
+    public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $this->profileUpdateService->update(
-            $request->user(),
-            $request->validated()
-        );
+        $request->user()->fill($request->validated());
 
-        return $this->profileUpdateService->updateResponse($request, $request->user());
+        if ($request->user()->isDirty('email')) {
+            $request->user()->email_verified_at = null;
+        }
+
+        $request->user()->save();
+
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    public function destroy(DeleteAccountRequest $request): RedirectResponse|\Illuminate\Http\JsonResponse
+    /**
+     * Delete the user's account.
+     */
+    public function destroy(Request $request): RedirectResponse
     {
-        $this->accountDeletionService->delete($request->user());
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        Auth::logout();
+
+        $user->delete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return $this->accountDeletionService->deleteResponse($request);
+        return Redirect::to('/');
     }
 }

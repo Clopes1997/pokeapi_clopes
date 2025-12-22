@@ -52,4 +52,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class);
     }
+
+    public function favorites(): BelongsToMany
+    {
+        return $this->belongsToMany(Pokemon::class, 'favorites');
+    }
 }
