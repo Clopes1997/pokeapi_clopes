@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Pokemon;
 
+use App\Models\Pokemon;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -174,6 +175,169 @@ class PokemonImportTest extends TestCase
 
         $response->assertStatus(500);
         $response->assertSee('Erro ao comunicar com a API de Pokémon', false);
+    }
+
+    public function test_single_import_restores_soft_deleted_pokemon(): void
+    {
+        $editorRole = Role::create(['name' => 'editor']);
+        $user = User::factory()->create();
+        $user->roles()->attach($editorRole);
+
+        $pokemon = Pokemon::create([
+            'api_id' => 25,
+            'name' => 'pikachu',
+            'height' => 4,
+            'weight' => 60,
+            'sprite' => 'https://example.com/pikachu.png',
+        ]);
+
+        $adminRole = Role::create(['name' => 'admin']);
+        $admin = User::factory()->create();
+        $admin->roles()->attach($adminRole);
+
+        $this->actingAs($admin)->delete("/pokemon/{$pokemon->api_id}");
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon->id]);
+
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/25' => Http::response(PokemonApiDataHelper::pikachuResponse(), 200),
+        ]);
+
+        $response = $this->actingAs($user)->post('/pokemon/import/25');
+
+        $response->assertStatus(200);
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('pokemons', ['id' => $pokemon->id, 'deleted_at' => null]);
+    }
+
+    public function test_batch_interval_import_ignores_soft_deleted_pokemon(): void
+    {
+        $editorRole = Role::create(['name' => 'editor']);
+        $user = User::factory()->create();
+        $user->roles()->attach($editorRole);
+
+        $adminRole = Role::create(['name' => 'admin']);
+        $admin = User::factory()->create();
+        $admin->roles()->attach($adminRole);
+
+        $pokemon1 = Pokemon::create([
+            'api_id' => 1,
+            'name' => 'bulbasaur',
+            'height' => 7,
+            'weight' => 69,
+            'sprite' => 'https://example.com/bulbasaur.png',
+        ]);
+
+        $this->actingAs($admin)->delete("/pokemon/{$pokemon1->api_id}");
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon1->id]);
+
+        \Illuminate\Support\Facades\Cache::flush();
+
+        Http::fake(function ($request) {
+            $url = $request->url();
+            if ($url === 'https://pokeapi.co/api/v2/pokemon/1') {
+                return Http::response(PokemonApiDataHelper::bulbasaurResponse(), 200);
+            }
+            if ($url === 'https://pokeapi.co/api/v2/pokemon/2') {
+                return Http::response(['id' => 2, 'name' => 'ivysaur', 'height' => 10, 'weight' => 130, 'sprites' => ['front_default' => null], 'types' => [], 'moves' => [], 'abilities' => []], 200);
+            }
+            if ($url === 'https://pokeapi.co/api/v2/pokemon/3') {
+                return Http::response(['id' => 3, 'name' => 'venusaur', 'height' => 20, 'weight' => 1000, 'sprites' => ['front_default' => null], 'types' => [], 'moves' => [], 'abilities' => []], 200);
+            }
+            return Http::response(PokemonApiDataHelper::notFoundResponse(), 404);
+        });
+
+        $response = $this->actingAs($user)->post('/pokemon/import', [
+            'start_id' => 1,
+            'end_id' => 3,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon1->id]);
+        $pokemon1After = Pokemon::withTrashed()->find($pokemon1->id);
+        $this->assertNotNull($pokemon1After->deleted_at);
+    }
+
+    public function test_batch_interval_import_succeeds_with_zero_imported_when_all_pokemon_are_soft_deleted_or_imported(): void
+    {
+        $editorRole = Role::create(['name' => 'editor']);
+        $user = User::factory()->create();
+        $user->roles()->attach($editorRole);
+
+        $adminRole = Role::create(['name' => 'admin']);
+        $admin = User::factory()->create();
+        $admin->roles()->attach($adminRole);
+
+        $pokemon1 = Pokemon::create([
+            'api_id' => 1,
+            'name' => 'bulbasaur',
+            'height' => 7,
+            'weight' => 69,
+            'sprite' => 'https://example.com/bulbasaur.png',
+        ]);
+
+        $pokemon2 = Pokemon::create([
+            'api_id' => 2,
+            'name' => 'ivysaur',
+            'height' => 10,
+            'weight' => 130,
+            'sprite' => 'https://example.com/ivysaur.png',
+        ]);
+
+        $this->actingAs($admin)->delete("/pokemon/{$pokemon1->api_id}");
+        $this->actingAs($admin)->delete("/pokemon/{$pokemon2->api_id}");
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon1->id]);
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon2->id]);
+
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/1' => Http::response(PokemonApiDataHelper::bulbasaurResponse(), 200),
+            'https://pokeapi.co/api/v2/pokemon/2' => Http::response(['id' => 2, 'name' => 'ivysaur', 'height' => 10, 'weight' => 130, 'sprites' => ['front_default' => null], 'types' => [], 'moves' => [], 'abilities' => []], 200),
+        ]);
+
+        $response = $this->actingAs($user)->post('/pokemon/import', [
+            'start_id' => 1,
+            'end_id' => 2,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon1->id]);
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon2->id]);
+    }
+
+    public function test_batch_incremental_import_ignores_soft_deleted_pokemon(): void
+    {
+        $editorRole = Role::create(['name' => 'editor']);
+        $user = User::factory()->create();
+        $user->roles()->attach($editorRole);
+
+        $adminRole = Role::create(['name' => 'admin']);
+        $admin = User::factory()->create();
+        $admin->roles()->attach($adminRole);
+
+        $pokemon = Pokemon::create([
+            'api_id' => 1,
+            'name' => 'bulbasaur',
+            'height' => 7,
+            'weight' => 69,
+            'sprite' => 'https://example.com/bulbasaur.png',
+        ]);
+
+        $this->actingAs($admin)->delete("/pokemon/{$pokemon->api_id}");
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon->id]);
+
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/2' => Http::response(['id' => 2, 'name' => 'ivysaur', 'height' => 10, 'weight' => 130, 'types' => [], 'moves' => [], 'abilities' => []], 200),
+            'https://pokeapi.co/api/v2/pokemon/3' => Http::response(['id' => 3, 'name' => 'venusaur', 'height' => 20, 'weight' => 1000, 'types' => [], 'moves' => [], 'abilities' => []], 200),
+        ]);
+
+        $response = $this->actingAs($user)->post('/pokemon/import');
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon->id]);
+        $maxApiId = Pokemon::max('api_id');
+        $this->assertGreaterThan(1, $maxApiId);
     }
 }
 

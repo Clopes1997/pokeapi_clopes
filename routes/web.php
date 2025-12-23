@@ -21,7 +21,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/pokemon', [PokemonController::class, 'index'])->name('pokemon.index');
     Route::get('/pokemon/favorites', [PokemonController::class, 'favorites'])->name('pokemon.favorites');
-    Route::post('/pokemon/import/{apiId}', [PokemonController::class, 'import'])->name('pokemon.import');
+    Route::post('/pokemon/import', [PokemonController::class, 'import'])->name('pokemon.import');
+    Route::post('/pokemon/import/{apiId}', [PokemonController::class, 'importLegacy'])->name('pokemon.import.legacy');
     Route::get('/pokemon/{id}', [PokemonController::class, 'show'])->name('pokemon.show');
     Route::delete('/pokemon/{id}', [PokemonController::class, 'destroy'])->name('pokemon.destroy');
     Route::post('/pokemon/{id}/favorite', [PokemonController::class, 'favorite'])->name('pokemon.favorite');

@@ -11,6 +11,10 @@ class PokemonDeleteService
     {
         DB::transaction(function () use ($apiId) {
             $pokemon = Pokemon::where('api_id', $apiId)->firstOrFail();
+            $pokemon->types()->detach();
+            $pokemon->moves()->detach();
+            $pokemon->abilities()->detach();
+            $pokemon->favoritedByUsers()->detach();
             $pokemon->delete();
         });
     }

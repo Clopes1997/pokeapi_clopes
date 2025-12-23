@@ -1,47 +1,81 @@
 # pokeapi-app-clopes
 
-Aplicação Laravel para consumo da PokéAPI v2, persistência local de dados de Pokémon e controle de acesso baseado em papéis.
+# Stack
 
-## Stack
-- PHP 8+, Laravel
-- Composer
-- MySQL
-- Consumo HTTP da PokéAPI v2 com cache e tratamento de erros
-
-## Requisitos
 - PHP 8+
-- Composer
+- Laravel + Blade
 - MySQL
+- Composer
+- PokéAPI v2 (HTTP GET)
+- Cache e logs de integração
 
-## Configuração e execução
-1) Instalar dependências  
-`composer install`
+# Setup rápido
 
-2) Configurar ambiente  
-Copie `.env.example` para `.env` e ajuste as credenciais do banco de dados.
+- composer install
 
-3) Gerar chave da aplicação  
-`php artisan key:generate`
+- cp .env.example .env
 
-4) Criar banco, migrar e popular dados básicos  
-`php artisan migrate --seed`
+- php artisan key:generate
 
-5) Importar Pokémon (a listagem inicia vazia até este passo)  
-`php artisan pokemon:import-auto`
+- php artisan migrate --seed
 
-6) Executar a aplicação  
-`php artisan serve`  
-Acesse o host e a porta indicados no terminal.
+- php artisan serve
 
-## Papéis de usuário
-- Viewer: pode visualizar dados já importados.
-- Editor: pode importar dados da PokéAPI e gerenciar favoritos.
-- Admin: pode gerenciar usuários, permissões e registros importados, conforme as políticas definidas.
+- Acesse [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-## Recuperação de senha
-- A aplicação não envia e-mails. Para redefinir a senha, utilize o fluxo de recuperação e consulte os logs da aplicação para obter o link de redefinição.
+# Usuários padrão
 
-## Importação de Pokémon
-- O comando `php artisan pokemon:import-auto` realiza requisições HTTP GET à PokéAPI v2, que não requer autenticação.
-- As respostas da API são cacheadas e falhas de rede ou indisponibilidade são tratadas de forma segura.
-- Até a execução do comando, a aplicação pode iniciar com a lista de Pokémon vazia.
+- Senha para todos: password
+
+- Viewer → viewer@example.com
+
+- Editor → editor@example.com
+
+- Admin → admin@example.com
+
+# Funções
+
+- Viewer: apenas visualização
+- Editor: importa Pokémon e gerencia favoritos
+- Admin: tudo do Editor + gerencia usuários e exclui Pokémon
+- Permissões aplicadas via Policies.
+
+# Importação de Pokémon
+
+- Disponível para Editor e Admin.
+
+- Modos:
+
+- Importar 1 Pokémon por ID
+
+- Importar intervalo de IDs
+
+- Importação incremental (sem parâmetros)
+
+- Regras:
+
+- Máx. 100 Pokémon por importação
+
+- Pokémon já importados são ignorados
+
+- Pokémon excluídos (soft delete) não são reimportados automaticamente
+
+- Pokémon excluído só volta por importação explícita via ID
+
+- Durante a importação, o usuário fica em uma tela de loading.
+
+- Também é possível importar Pokémon via linha de comando:
+
+- php artisan pokemon:import-auto
+
+# Exclusão (soft delete)
+
+- Pokémon excluídos não aparecem mais no sistema
+- Não são reimportados automaticamente
+- Só podem ser restaurados por importação manual via ID
+
+# Favoritos
+
+- Favoritos são por usuário
+- Apenas Editor e Admin
+- Adicionar e remover via interface

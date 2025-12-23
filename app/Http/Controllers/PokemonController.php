@@ -54,11 +54,47 @@ class PokemonController extends Controller
         ]);
     }
 
-    public function import(ImportPokemonRequest $request, int $apiId)
+    public function import(ImportPokemonRequest $request)
     {
         Gate::authorize('import', Pokemon::class);
 
-        $this->importService->import($apiId);
+        $pokemonId = $request->input('pokemon_id');
+        $startId = $request->input('start_id');
+        $endId = $request->input('end_id');
+
+        if ($pokemonId) {
+            $this->importService->importSingle($pokemonId);
+            return redirect()->route('pokemon.index')->with('success', 'Pokémon importado com sucesso.');
+        }
+
+        if ($startId && $endId) {
+            $result = $this->importService->importInterval($startId, $endId);
+            
+            if ($result['already_existed'] > 0) {
+                $message = "{$result['imported']} Pokémon importados. {$result['already_existed']} já existiam no sistema.";
+            } else {
+                $message = "{$result['imported']} Pokémon importados com sucesso.";
+            }
+            
+            return redirect()->route('pokemon.index')->with('success', $message);
+        }
+
+        $result = $this->importService->importIncremental();
+        
+        if ($result['already_existed'] > 0) {
+            $message = "{$result['imported']} Pokémon importados. {$result['already_existed']} já existiam no sistema.";
+        } else {
+            $message = "{$result['imported']} Pokémon importados com sucesso.";
+        }
+        
+        return redirect()->route('pokemon.index')->with('success', $message);
+    }
+
+    public function importLegacy(ImportPokemonRequest $request, int $apiId)
+    {
+        Gate::authorize('import', Pokemon::class);
+
+        $this->importService->importSingle($apiId);
 
         session()->flash('success', 'Pokémon importado com sucesso');
         return response('Pokémon importado com sucesso', 200);

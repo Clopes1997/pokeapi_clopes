@@ -30,7 +30,7 @@ class PokemonDeleteTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('success', 'Pokémon excluído com sucesso');
-        $this->assertDatabaseMissing('pokemons', ['id' => $pokemon->id]);
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon->id]);
     }
 
     public function test_editor_cannot_delete_pokemon(): void
@@ -114,8 +114,8 @@ class PokemonDeleteTest extends TestCase
         $response = $this->actingAs($admin)->delete("/pokemon/{$pokemon1->api_id}");
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('pokemons', ['id' => $pokemon1->id]);
-        $this->assertDatabaseHas('pokemons', ['id' => $pokemon2->id]);
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon1->id]);
+        $this->assertDatabaseHas('pokemons', ['id' => $pokemon2->id, 'deleted_at' => null]);
     }
 
     public function test_deleting_nonexistent_pokemon_returns_error(): void
@@ -157,7 +157,7 @@ class PokemonDeleteTest extends TestCase
         $response = $this->actingAs($admin)->delete("/pokemon/{$pokemon->api_id}");
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('favorites', ['pokemon_id' => $pokemon->id]);
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon->id]);
     }
 
     public function test_deleting_pokemon_removes_related_types(): void
@@ -181,7 +181,7 @@ class PokemonDeleteTest extends TestCase
         $response = $this->actingAs($admin)->delete("/pokemon/{$pokemon->api_id}");
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('pokemon_type', ['pokemon_id' => $pokemon->id]);
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon->id]);
     }
 
     public function test_deleting_pokemon_removes_related_abilities(): void
@@ -205,7 +205,7 @@ class PokemonDeleteTest extends TestCase
         $response = $this->actingAs($admin)->delete("/pokemon/{$pokemon->api_id}");
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('ability_pokemon', ['pokemon_id' => $pokemon->id]);
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon->id]);
     }
 
     public function test_deleting_pokemon_removes_related_moves(): void
@@ -229,7 +229,7 @@ class PokemonDeleteTest extends TestCase
         $response = $this->actingAs($admin)->delete("/pokemon/{$pokemon->api_id}");
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('move_pokemon', ['pokemon_id' => $pokemon->id]);
+        $this->assertSoftDeleted('pokemons', ['id' => $pokemon->id]);
     }
 }
 

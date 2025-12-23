@@ -62,14 +62,8 @@
         </div>
 
         @can('delete', $pokemon)
-            <div class="stack section-group" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb;">
-                <form method="POST" action="{{ route('pokemon.destroy', $pokemon->api_id) }}" onsubmit="return confirm('Tem certeza que deseja excluir este Pokémon? Esta ação não pode ser desfeita.');">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger" style="background-color: #dc2626; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer; font-weight: 600; font-size: 1rem;">
-                        Excluir Pokémon
-                    </button>
-                </form>
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb;">
+                <a href="#delete-modal-{{ $pokemon->api_id }}" class="btn btn-danger">Excluir Pokémon</a>
             </div>
         @endcan
     </div>
@@ -92,4 +86,26 @@
         });
 
     </script>
+
+    @can('delete', $pokemon)
+        <div id="delete-modal-{{ $pokemon->api_id }}" class="modal-overlay">
+            <div class="modal">
+                <div class="modal-body">
+                    <h3 class="section-title">Confirmar Exclusão</h3>
+                    <p class="section-text" style="margin-bottom: 1rem;">
+                        Este Pokémon será removido do sistema.
+                        Para visualizá-lo novamente, será necessário importá-lo manualmente informando o ID "{{ $pokemon->api_id }}".
+                    </p>
+                    <form method="POST" action="{{ route('pokemon.destroy', $pokemon->api_id) }}" class="delete-confirm-form">
+                        @csrf
+                        @method('DELETE')
+                        <div class="modal-actions">
+                            <a href="#" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-danger">Confirmar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endcan
 </x-app-layout>
