@@ -20,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->registerPolicies();
+
         Gate::define('admin', function (User $user) {
             return $user->roles()->where('name', 'admin')->exists();
         });

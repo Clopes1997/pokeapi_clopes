@@ -3,22 +3,6 @@
         <h2 class="page-title">Meus Favoritos</h2>
     </x-slot>
 
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if($errors->any())
-        <div class="alert alert-error">
-            <ul>
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <div class="card">
         @if($favorites->count() > 0)
             <div class="grid grid-3">

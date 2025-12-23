@@ -3,22 +3,6 @@
         <h2 class="page-title">Lista de Pokémon</h2>
     </x-slot>
 
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if($errors->any())
-        <div class="alert alert-error">
-            <ul>
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <div class="card">
         <form method="GET" action="{{ route('pokemon.index') }}" class="search-form">
             <div class="row">
@@ -43,14 +27,16 @@
                             <img src="{{ $p->sprite }}" alt="{{ $p->name }}" class="pokemon-sprite">
                         @endif
                         
-                        @if(auth()->user()->roles()->where('name', 'admin')->exists())
-                            <div style="position: absolute; bottom: 0.5rem; right: 2.5rem;">
-                                <span style="font-size: 1.2rem; color: #ef4444; cursor: default;" title="Excluir">✕</span>
-                            </div>
-                        @endif
+                        @can('delete', $p)
+                            <form method="POST" action="{{ route('pokemon.destroy', $p->api_id) }}" class="delete-form" style="position: absolute; bottom: 0.5rem; right: 2.5rem;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #ef4444; padding: 0; line-height: 1;" title="Excluir">✕</button>
+                            </form>
+                        @endcan
 
                         @can('favorite', $p)
-                            @if(auth()->user()->favorites->contains($p))
+                            @if(in_array($p->id, $favoriteIds ?? [], true))
                                 <form method="POST" action="{{ route('pokemon.unfavorite', $p->id) }}" class="favorite-form" style="position: absolute; bottom: 0.5rem; right: 0.5rem;">
                                     @csrf
                                     @method('DELETE')
@@ -93,13 +79,23 @@
             });
         });
 
-        const successAlert = document.querySelector('.alert-success');
-        if (successAlert) {
-            setTimeout(() => {
-                successAlert.style.transition = 'opacity 0.5s';
-                successAlert.style.opacity = '0';
-                setTimeout(() => successAlert.remove(), 500);
-            }, 1000);
-        }
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (confirm('Tem certeza que deseja excluir este Pokémon? Esta ação não pode ser desfeita.')) {
+                    const formData = new FormData(this);
+                    fetch(this.action, {
+                        method: this.method,
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                }
+            });
+        });
+
     </script>
 </x-app-layout>

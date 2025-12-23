@@ -11,11 +11,14 @@ use Illuminate\Support\Facades\Redirect;
 
 class AccountDeletionService
 {
-    public function delete(User $user): void
+    public function delete(Request $request, User $user): void
     {
         Auth::logout();
 
         $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
     }
 
     public function deleteResponse(Request $request): RedirectResponse|JsonResponse

@@ -17,7 +17,6 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', 'unique:'.User::class],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ];
@@ -29,10 +28,6 @@ class RegisterRequest extends FormRequest
             'name.required' => 'O campo nome é obrigatório.',
             'name.string' => 'O campo nome deve ser um texto.',
             'name.max' => 'O campo nome não pode ter mais de 255 caracteres.',
-            'username.required' => 'O campo usuário é obrigatório.',
-            'username.string' => 'O campo usuário deve ser um texto.',
-            'username.max' => 'O campo usuário não pode ter mais de 255 caracteres.',
-            'username.unique' => 'Este usuário já está em uso.',
             'email.required' => 'O campo e-mail é obrigatório.',
             'email.string' => 'O campo e-mail deve ser um texto.',
             'email.email' => 'O campo e-mail deve ser um endereço de e-mail válido.',

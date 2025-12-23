@@ -207,7 +207,7 @@ img{max-width:100%;height:auto;display:block}
 
 .stack{display:flex;flex-direction:column;gap:1.5rem}
 .row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
-.row-end{display:flex;align-items:center;justify-content:flex-end;gap:1rem;flex-wrap:wrap}
+.row-end{display:flex;align-items:center;justify-content:flex-end;gap:1rem;flex-wrap:wrap;margin-top:20px;}
 
 .grid{
   display:grid;

@@ -14,7 +14,6 @@ class PokemonDetailService
 
     public function getById(int $id): Pokemon
     {
-        // O $id recebido é o api_id, não o id do banco
         $pokemon = Pokemon::with(['types', 'moves', 'abilities'])
             ->where('api_id', $id)
             ->first();
@@ -23,12 +22,8 @@ class PokemonDetailService
             return $pokemon;
         }
 
-        // Lazy import: se não existe no banco, busca na API simulada e persiste.
-        // - Not found -> ModelNotFoundException (404)
-        // - Falha de integração -> HttpException (500)
         $this->importService->import($id);
         
-        // Após importar com sucesso, busca novamente pelo api_id
         $pokemon = Pokemon::with(['types', 'moves', 'abilities'])
             ->where('api_id', $id)
             ->first();

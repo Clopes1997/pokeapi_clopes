@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PokemonController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -9,10 +10,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    $favorites = auth()->user()->favorites;
-    return view('dashboard', ['favorites' => $favorites]);
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -21,8 +21,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/pokemon', [PokemonController::class, 'index'])->name('pokemon.index');
     Route::get('/pokemon/favorites', [PokemonController::class, 'favorites'])->name('pokemon.favorites');
-    Route::get('/pokemon/{id}', [PokemonController::class, 'show'])->name('pokemon.show');
     Route::post('/pokemon/import/{apiId}', [PokemonController::class, 'import'])->name('pokemon.import');
+    Route::get('/pokemon/{id}', [PokemonController::class, 'show'])->name('pokemon.show');
+    Route::delete('/pokemon/{id}', [PokemonController::class, 'destroy'])->name('pokemon.destroy');
     Route::post('/pokemon/{id}/favorite', [PokemonController::class, 'favorite'])->name('pokemon.favorite');
     Route::delete('/pokemon/{id}/favorite', [PokemonController::class, 'unfavorite'])->name('pokemon.unfavorite');
 

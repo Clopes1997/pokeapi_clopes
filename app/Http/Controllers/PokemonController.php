@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Pokemon\ImportPokemonRequest;
 use App\Models\Pokemon;
+use App\Services\Pokemon\PokemonDeleteService;
 use App\Services\Pokemon\PokemonDetailService;
 use App\Services\Pokemon\PokemonFavoriteService;
 use App\Services\Pokemon\PokemonImportService;
@@ -18,7 +19,8 @@ class PokemonController extends Controller
         private PokemonListingService $listingService,
         private PokemonImportService $importService,
         private PokemonFavoriteService $favoriteService,
-        private PokemonDetailService $detailService
+        private PokemonDetailService $detailService,
+        private PokemonDeleteService $deleteService
     ) {
     }
 
@@ -30,17 +32,26 @@ class PokemonController extends Controller
         $type = $request->query('type');
 
         $pokemon = $this->listingService->getPaginatedList($search, $type);
+        $favoriteIds = $this->favoriteService->getFavoriteIds($request->user());
 
-        return view('pokemon.index', ['pokemon' => $pokemon]);
+        return view('pokemon.index', [
+            'pokemon' => $pokemon,
+            'favoriteIds' => $favoriteIds,
+        ]);
     }
 
-    public function show(int $id): View
+    public function show(Request $request, int $id): View
     {
         $pokemon = $this->detailService->getById($id);
 
         Gate::authorize('view', $pokemon);
 
-        return view('pokemon.show', ['pokemon' => $pokemon]);
+        $isFavorited = $this->favoriteService->isFavorite($request->user(), $pokemon);
+
+        return view('pokemon.show', [
+            'pokemon' => $pokemon,
+            'isFavorited' => $isFavorited,
+        ]);
     }
 
     public function import(ImportPokemonRequest $request, int $apiId)
@@ -82,5 +93,15 @@ class PokemonController extends Controller
         $favorites = $this->favoriteService->getUserFavorites(auth()->user());
 
         return view('pokemon.favorites', ['favorites' => $favorites]);
+    }
+
+    public function destroy(int $id)
+    {
+        $pokemon = $this->detailService->getById($id);
+        Gate::authorize('delete', $pokemon);
+
+        $this->deleteService->delete($id);
+
+        return redirect()->route('pokemon.index')->with('success', 'Pokémon excluído com sucesso');
     }
 }

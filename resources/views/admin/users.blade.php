@@ -3,28 +3,11 @@
         <h2 class="page-title">Gerenciar Usuários</h2>
     </x-slot>
 
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if($errors->any())
-        <div class="alert alert-error">
-            <ul>
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <div class="card">
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
                 <tr style="border-bottom: 2px solid #e5e7eb;">
                     <th style="padding: 1rem; text-align: left; font-weight: 600;">Nome</th>
-                    <th style="padding: 1rem; text-align: left; font-weight: 600;">Username</th>
                     <th style="padding: 1rem; text-align: left; font-weight: 600;">Email</th>
                     <th style="padding: 1rem; text-align: left; font-weight: 600;">Função Atual</th>
                     <th style="padding: 1rem; text-align: left; font-weight: 600;">Alterar Função</th>
@@ -34,7 +17,6 @@
                 @foreach($users as $user)
                     <tr style="border-bottom: 1px solid #e5e7eb;">
                         <td style="padding: 1rem;">{{ $user->name }}</td>
-                        <td style="padding: 1rem;">{{ $user->username }}</td>
                         <td style="padding: 1rem;">{{ $user->email }}</td>
                         <td style="padding: 1rem;">
                             @if($user->roles->count() > 0)
@@ -63,15 +45,4 @@
         </table>
     </div>
 
-    <script>
-        const successAlert = document.querySelector('.alert-success');
-        if (successAlert) {
-            setTimeout(() => {
-                successAlert.style.transition = 'opacity 0.5s';
-                successAlert.style.opacity = '0';
-                setTimeout(() => successAlert.remove(), 500);
-            }, 3000);
-        }
-    </script>
 </x-app-layout>
-

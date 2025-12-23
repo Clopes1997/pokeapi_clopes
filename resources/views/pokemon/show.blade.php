@@ -3,25 +3,9 @@
         <h2 class="page-title">Detalhes do Pokémon</h2>
     </x-slot>
 
-    @if(session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if($errors->any())
-        <div class="alert alert-error">
-            <ul>
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <div class="card" style="position: relative;">
         @can('favorite', $pokemon)
-            @if(auth()->user()->favorites->contains($pokemon))
+            @if($isFavorited)
                 <form method="POST" action="{{ route('pokemon.unfavorite', $pokemon->id) }}" class="favorite-form" style="position: absolute; top: 1rem; right: 1rem;">
                     @csrf
                     @method('DELETE')
@@ -76,6 +60,18 @@
                 @endforeach
             </div>
         </div>
+
+        @can('delete', $pokemon)
+            <div class="stack section-group" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb;">
+                <form method="POST" action="{{ route('pokemon.destroy', $pokemon->id) }}" onsubmit="return confirm('Tem certeza que deseja excluir este Pokémon? Esta ação não pode ser desfeita.');">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger" style="background-color: #dc2626; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer; font-weight: 600; font-size: 1rem;">
+                        Excluir Pokémon
+                    </button>
+                </form>
+            </div>
+        @endcan
     </div>
 
     <script>
@@ -95,13 +91,5 @@
             });
         });
 
-        const successAlert = document.querySelector('.alert-success');
-        if (successAlert) {
-            setTimeout(() => {
-                successAlert.style.transition = 'opacity 0.5s';
-                successAlert.style.opacity = '0';
-                setTimeout(() => successAlert.remove(), 500);
-            }, 1000);
-        }
     </script>
 </x-app-layout>

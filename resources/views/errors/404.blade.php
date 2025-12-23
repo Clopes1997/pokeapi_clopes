@@ -4,8 +4,8 @@
     </x-slot>
 
     <div class="card">
-        <h1 class="section-title">Pokémon não encontrado</h1>
-        <p class="section-text">{{ $exception->getMessage() ?: 'Pokémon não encontrado' }}</p>
+        <h1 class="section-title">Página não encontrada</h1>
+        <p class="section-text">{{ $exception->getMessage() ?: 'Página não encontrada' }}</p>
     </div>
 </x-app-layout>
 

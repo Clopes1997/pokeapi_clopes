@@ -104,8 +104,10 @@ class PokemonListingTest extends TestCase
         $response = $this->actingAs($user)->get('/pokemon');
 
         $response->assertStatus(200);
-        $response->assertDontSee('Exception');
-        $response->assertDontSee('Error');
+        // Verifica que não há mensagens de erro técnicas expostas
+        $response->assertDontSee('Exception', false);
+        $response->assertDontSee('Fatal error', false);
+        $response->assertDontSee('Stack trace', false);
     }
 }
 

@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
-use App\Models\User;
+use App\Services\Admin\AdminUserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -11,12 +10,16 @@ use Illuminate\View\View;
 
 class AdminController extends Controller
 {
+    public function __construct(private AdminUserService $adminUserService)
+    {
+    }
+
     public function users(): View
     {
         Gate::authorize('admin');
 
-        $users = User::with('roles')->get();
-        $roles = Role::all();
+        $users = $this->adminUserService->getUsers();
+        $roles = $this->adminUserService->getRoles();
 
         return view('admin.users', [
             'users' => $users,
@@ -28,10 +31,9 @@ class AdminController extends Controller
     {
         Gate::authorize('admin');
 
-        $user = User::findOrFail($userId);
-        $roleId = $request->input('role_id');
+        $roleId = (int) $request->input('role_id');
 
-        $user->roles()->sync([$roleId]);
+        $this->adminUserService->updateUserRole($userId, $roleId);
 
         return redirect()->route('admin.users')->with('success', 'Função do usuário atualizada com sucesso');
     }

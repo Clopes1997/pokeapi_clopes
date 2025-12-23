@@ -46,4 +46,9 @@ class PokemonPolicy
     {
         return $this->canEdit($user);
     }
+
+    public function delete(User $user, Pokemon $pokemon): bool
+    {
+        return $this->hasRole($user, 'admin');
+    }
 }

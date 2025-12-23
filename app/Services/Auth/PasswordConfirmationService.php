@@ -11,7 +11,7 @@ class PasswordConfirmationService
     public function confirm(User $user, string $password): void
     {
         if (! Auth::guard('web')->validate([
-            'username' => $user->username,
+            'email' => $user->email,
             'password' => $password,
         ])) {
             throw ValidationException::withMessages([

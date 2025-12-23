@@ -29,7 +29,6 @@
                     <div>
                         <x-input-label for="password" value="Senha" class="sr-only" />
                         <x-text-input id="password" name="password" type="password" placeholder="Senha" />
-                        <x-input-error :messages="$errors->userDeletion->get('password')" />
                     </div>
 
                     <div class="modal-actions">

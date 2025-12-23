@@ -16,17 +16,14 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Seed Roles (if not already seeded)
         $viewer = Role::firstOrCreate(['name' => 'viewer'], ['display_name' => 'Viewer']);
         $editor = Role::firstOrCreate(['name' => 'editor'], ['display_name' => 'Editor']);
         $admin = Role::firstOrCreate(['name' => 'admin'], ['display_name' => 'Administrator']);
 
-        // Seed Users (if not already seeded)
         $viewerUser = User::firstOrCreate(
-            ['username' => 'viewer'],
+            ['email' => 'viewer@example.com'],
             [
                 'name' => 'Viewer User',
-                'email' => 'viewer@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
@@ -36,10 +33,9 @@ class DatabaseSeeder extends Seeder
         }
 
         $editorUser = User::firstOrCreate(
-            ['username' => 'editor'],
+            ['email' => 'editor@example.com'],
             [
                 'name' => 'Editor User',
-                'email' => 'editor@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
@@ -49,10 +45,9 @@ class DatabaseSeeder extends Seeder
         }
 
         $adminUser = User::firstOrCreate(
-            ['username' => 'admin'],
+            ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin User',
-                'email' => 'admin@example.com',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
             ]
@@ -61,7 +56,6 @@ class DatabaseSeeder extends Seeder
             $adminUser->roles()->attach($admin);
         }
 
-        // Seed Types
         $types = [
             'Normal', 'Fire', 'Water', 'Electric', 'Grass', 'Ice',
             'Fighting', 'Poison', 'Ground', 'Flying', 'Psychic', 'Bug',
@@ -73,7 +67,6 @@ class DatabaseSeeder extends Seeder
             $typeModels[$typeName] = Type::firstOrCreate(['name' => $typeName]);
         }
 
-        // Seed Abilities
         $abilities = [
             'Overgrow', 'Blaze', 'Torrent', 'Static', 'Lightning Rod',
             'Intimidate', 'Levitate', 'Swift Swim', 'Chlorophyll', 'Thick Fat',
@@ -88,7 +81,6 @@ class DatabaseSeeder extends Seeder
             $abilityModels[$abilityName] = Ability::firstOrCreate(['name' => $abilityName]);
         }
 
-        // Seed Moves
         $moves = [
             'Tackle', 'Scratch', 'Ember', 'Water Gun', 'Thunder Shock',
             'Vine Whip', 'Ice Beam', 'Thunderbolt', 'Flamethrower', 'Hydro Pump',
@@ -102,7 +94,6 @@ class DatabaseSeeder extends Seeder
             $moveModels[$moveName] = Move::firstOrCreate(['name' => $moveName]);
         }
 
-        // Seed Pokemons with realistic data
         $pokemons = [
             [
                 'api_id' => 1,
@@ -238,7 +229,6 @@ class DatabaseSeeder extends Seeder
                 $pokemonData
             );
 
-            // Attach types
             $typeIds = [];
             foreach ($types as $typeName) {
                 if (isset($typeModels[$typeName])) {
@@ -247,7 +237,6 @@ class DatabaseSeeder extends Seeder
             }
             $pokemon->types()->sync($typeIds);
 
-            // Attach abilities (create if they don't exist)
             $abilityIds = [];
             foreach ($abilities as $abilityName) {
                 if (!isset($abilityModels[$abilityName])) {
@@ -257,7 +246,6 @@ class DatabaseSeeder extends Seeder
             }
             $pokemon->abilities()->sync($abilityIds);
 
-            // Attach moves (create if they don't exist)
             $moveIds = [];
             foreach ($moves as $moveName) {
                 if (!isset($moveModels[$moveName])) {
@@ -268,12 +256,10 @@ class DatabaseSeeder extends Seeder
             $pokemon->moves()->sync($moveIds);
         }
 
-        // Seed Favorites - Add some favorites for existing users
         $allUsers = User::all();
         $allPokemons = Pokemon::all();
 
         if ($allUsers->isNotEmpty() && $allPokemons->isNotEmpty()) {
-            // Viewer user favorites
             if ($viewerUser) {
                 $viewerFavorites = $allPokemons->random(min(3, $allPokemons->count()));
                 foreach ($viewerFavorites as $pokemon) {
@@ -281,7 +267,6 @@ class DatabaseSeeder extends Seeder
                 }
             }
 
-            // Editor user favorites
             if ($editorUser) {
                 $editorFavorites = $allPokemons->random(min(5, $allPokemons->count()));
                 foreach ($editorFavorites as $pokemon) {
@@ -289,7 +274,6 @@ class DatabaseSeeder extends Seeder
                 }
             }
 
-            // Admin user favorites
             if ($adminUser) {
                 $adminFavorites = $allPokemons->random(min(4, $allPokemons->count()));
                 foreach ($adminFavorites as $pokemon) {

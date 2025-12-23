@@ -47,9 +47,8 @@ class PokemonFavoriteTest extends TestCase
         $firstFavorite->assertStatus(200);
 
         $duplicateFavorite = $this->actingAs($user)->post('/pokemon/1/favorite');
-        $duplicateFavorite->assertStatus(422);
+        $duplicateFavorite->assertStatus(302);
         $duplicateFavorite->assertSessionHasErrors();
-        $duplicateFavorite->assertSee('Este Pokémon já está nos seus favoritos', false);
     }
 
     public function test_user_can_list_their_own_favorites(): void
@@ -118,7 +117,8 @@ class PokemonFavoriteTest extends TestCase
         $firstFavorite->assertStatus(200);
 
         $duplicateFavorite = $this->actingAs($user)->post('/pokemon/1/favorite');
-        $duplicateFavorite->assertSee('Este Pokémon já está nos seus favoritos', false);
+        $duplicateFavorite->assertSessionHasErrors('pokemon');
+        $duplicateFavorite->assertSessionHasErrors(['pokemon' => 'Este Pokémon já está nos seus favoritos']);
     }
 
     public function test_viewer_cannot_access_favorites_list(): void

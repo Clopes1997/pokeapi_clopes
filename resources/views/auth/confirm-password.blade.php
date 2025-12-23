@@ -9,7 +9,6 @@
         <div>
             <x-input-label for="password" :value="__('Senha')" />
             <x-text-input id="password" type="password" name="password" required autocomplete="current-password" />
-            <x-input-error :messages="$errors->get('password')" />
         </div>
 
         <div class="row-end">

@@ -10,9 +10,6 @@ use Illuminate\Validation\ValidationException;
 
 class PokemonFavoriteService
 {
-    /**
-     * O parâmetro recebido nos endpoints é o api_id (PokéAPI), não o id do banco.
-     */
     public function addFavorite(User $user, int $apiId): void
     {
         $pokemon = Pokemon::query()->where('api_id', $apiId)->first();
@@ -32,9 +29,6 @@ class PokemonFavoriteService
         $user->favorites()->attach($pokemonId);
     }
 
-    /**
-     * O parâmetro recebido nos endpoints é o api_id (PokéAPI), não o id do banco.
-     */
     public function removeFavorite(User $user, int $apiId): void
     {
         $pokemon = Pokemon::query()->where('api_id', $apiId)->first();
@@ -50,6 +44,21 @@ class PokemonFavoriteService
     public function getUserFavorites(User $user): Collection
     {
         return $user->favorites()->get();
+    }
+
+    public function getFavoriteIds(User $user): array
+    {
+        return $user->favorites()
+            ->pluck('pokemon_id')
+            ->map(fn (int $pokemonId) => $pokemonId)
+            ->all();
+    }
+
+    public function isFavorite(User $user, Pokemon $pokemon): bool
+    {
+        return $user->favorites()
+            ->where('pokemon_id', $pokemon->getKey())
+            ->exists();
     }
 }
 

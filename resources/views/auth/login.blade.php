@@ -1,13 +1,10 @@
 <x-guest-layout>
-    <x-auth-session-status :status="session('status')" />
-
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
         <div>
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" />
         </div>
 
         <div>
@@ -17,8 +14,6 @@
                             type="password"
                             name="password"
                             required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" />
         </div>
 
         <div class="row">

@@ -20,6 +20,7 @@
         </nav>
 
         <div class="nav-actions">
+            @auth
             <details class="menu">
                 <summary class="btn btn-ghost btn-sm">
                     <span>{{ Auth::user()->name }}</span>
@@ -39,6 +40,7 @@
                     </form>
                 </div>
             </details>
+            @endauth
 
             <label class="btn btn-ghost btn-icon nav-toggle-btn" for="nav-toggle" aria-label="Abrir menu">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -56,6 +58,7 @@
                 <a href="{{ route('admin.users') }}" class="nav-mobile-link {{ request()->routeIs('admin.*') ? 'is-active' : '' }}">Admin</a>
             @endcan
 
+            @auth
             <div class="nav-mobile-section">
                 <div class="menu-meta">
                     <div class="menu-meta-name">{{ Auth::user()->name }}</div>
@@ -67,6 +70,7 @@
                     <button type="submit" class="nav-mobile-link">Sair</button>
                 </form>
             </div>
+            @endauth
         </div>
     </div>
 </header>

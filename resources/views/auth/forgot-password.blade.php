@@ -3,15 +3,13 @@
         Esqueceu sua senha? Sem problemas. Informe seu email e enviaremos um link para redefinir sua senha.
     </p>
 
-    <x-auth-session-status :status="session('status')" />
-
     <form method="POST" action="{{ route('password.email') }}">
         @csrf
 
         <div>
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" type="email" name="email" :value="old('email')" required autofocus />
-            <x-input-error :messages="$errors->get('email')" />
+            <p class="help">Se o e-mail constar na nossa base, você receberá uma mensagem com o link de redefinição.</p>
         </div>
 
         <div class="row-end">
