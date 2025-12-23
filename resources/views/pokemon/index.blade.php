@@ -18,13 +18,13 @@
                 @foreach($pokemon as $p)
                     <div class="card pokemon-card" style="position: relative;">
                         <div class="pokemon-info">
-                            <h3 class="section-title">{{ $p->name }}</h3>
-                            <p class="section-text">Altura: {{ $p->height }}</p>
-                            <p class="section-text">Peso: {{ $p->weight }}</p>
-                            <a href="{{ route('pokemon.show', $p->id) }}" class="text-link">Ver detalhes</a>
+                            <h3 class="section-title">{{ $p->formatted_name }}</h3>
+                            <p class="section-text">Altura: {{ $p->height_in_meters }}</p>
+                            <p class="section-text">Peso: {{ $p->weight_in_kilograms }}</p>
+                            <a href="{{ route('pokemon.show', $p->api_id) }}" class="text-link">Ver detalhes</a>
                         </div>
                         @if($p->sprite)
-                            <img src="{{ $p->sprite }}" alt="{{ $p->name }}" class="pokemon-sprite">
+                            <img src="{{ $p->sprite }}" alt="{{ $p->formatted_name }}" class="pokemon-sprite">
                         @endif
                         
                         @can('delete', $p)
@@ -37,13 +37,13 @@
 
                         @can('favorite', $p)
                             @if(in_array($p->id, $favoriteIds ?? [], true))
-                                <form method="POST" action="{{ route('pokemon.unfavorite', $p->id) }}" class="favorite-form" style="position: absolute; bottom: 0.5rem; right: 0.5rem;">
+                                <form method="POST" action="{{ route('pokemon.unfavorite', $p->api_id) }}" class="favorite-form" style="position: absolute; bottom: 0.5rem; right: 0.5rem;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #FFD700; padding: 0; line-height: 1;">★</button>
                                 </form>
                             @else
-                                <form method="POST" action="{{ route('pokemon.favorite', $p->id) }}" class="favorite-form" style="position: absolute; bottom: 0.5rem; right: 0.5rem;">
+                                <form method="POST" action="{{ route('pokemon.favorite', $p->api_id) }}" class="favorite-form" style="position: absolute; bottom: 0.5rem; right: 0.5rem;">
                                     @csrf
                                     <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #ccc; padding: 0; line-height: 1;">☆</button>
                                 </form>
@@ -54,7 +54,7 @@
         </div>
 
         <div class="pagination-wrapper">
-            {{ $pokemon->links() }}
+            {{ $pokemon->links('vendor.pagination.default') }}
         </div>
     @else
         <div class="card">

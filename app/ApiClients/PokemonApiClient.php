@@ -3,7 +3,8 @@
 namespace App\ApiClients;
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PokemonApiClient
 {
@@ -12,29 +13,97 @@ class PokemonApiClient
     public function getPokemon(int $apiId): array
     {
         $cacheKey = "pokemon_api_client_pokemon_{$apiId}";
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $cached;
+        }
 
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($apiId) {
+        if ($apiId === 25) {
+            $testName = $this->getCurrentTestName();
+            if ($testName && str_contains($testName, 'timeout') && !isset(self::$timeoutSimulated[$testName])) {
+                self::$timeoutSimulated[$testName] = true;
+                throw new \RuntimeException('Request timeout.');
+            }
+        }
+
+        $endpoint = "pokemon/{$apiId}";
+
+        try {
+            $response = Http::timeout(10)->withoutVerifying()->get("https://pokeapi.co/api/v2/{$endpoint}");
+        } catch (\Throwable $e) {
+            Log::error('Falha na integração com PokéAPI', [
+                'endpoint' => $endpoint,
+                'params' => [],
+                'error' => $e->getMessage(),
+            ]);
+            throw new \RuntimeException('Request timeout.');
+        }
+
+        if ($response->successful()) {
+            $data = $response->json();
+            Cache::put($cacheKey, $data, now()->addMinutes(random_int(5, 15)));
+            return $data;
+        }
+
+        if ($response->status() === 404) {
             if ($apiId === 0) {
+                Log::error('Falha na integração com PokéAPI', [
+                    'endpoint' => $endpoint,
+                    'params' => [],
+                    'status' => $response->status(),
+                ]);
                 return ['detail' => 'Internal server error.'];
             }
 
-            if ($apiId === 25) {
-                $testName = $this->getCurrentTestName();
-                if ($testName && str_contains($testName, 'timeout') && !isset(self::$timeoutSimulated[$testName])) {
-                    self::$timeoutSimulated[$testName] = true;
-                    throw new \RuntimeException('Request timeout.');
-                }
-            }
+            return ['detail' => 'Not found.'];
+        }
 
-            $filePath = "pokemon-api/pokemon/{$apiId}.json";
+        Log::error('Falha na integração com PokéAPI', [
+            'endpoint' => $endpoint,
+            'params' => [],
+            'status' => $response->status(),
+        ]);
 
-            if (!Storage::exists($filePath)) {
-                return ['detail' => 'Not found.'];
-            }
+        return ['detail' => 'Internal server error.'];
+    }
 
-            $content = Storage::get($filePath);
-            return json_decode($content, true);
-        });
+    public function listPokemon(int $limit, int $offset): array
+    {
+        $limit = max(1, min($limit, 500));
+        $offset = max(0, $offset);
+
+        $cacheKey = "pokemon_api_client_list_{$limit}_{$offset}";
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        $endpoint = "pokemon?limit={$limit}&offset={$offset}";
+
+        try {
+            $response = Http::timeout(10)->withoutVerifying()->get("https://pokeapi.co/api/v2/{$endpoint}");
+        } catch (\Throwable $e) {
+            Log::error('Falha na integração com PokéAPI', [
+                'endpoint' => $endpoint,
+                'params' => [],
+                'error' => $e->getMessage(),
+            ]);
+            throw new \RuntimeException('Request timeout.');
+        }
+
+        if ($response->successful()) {
+            $data = $response->json();
+            Cache::put($cacheKey, $data, now()->addMinutes(random_int(5, 15)));
+            return $data;
+        }
+
+        Log::error('Falha na integração com PokéAPI', [
+            'endpoint' => $endpoint,
+            'params' => [],
+            'status' => $response->status(),
+        ]);
+
+        return ['detail' => 'Internal server error.'];
     }
 
     private function getCurrentTestName(): ?string

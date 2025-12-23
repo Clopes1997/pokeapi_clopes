@@ -247,7 +247,104 @@ img{max-width:100%;height:auto;display:block}
 }
 
 .search-form{margin-bottom:2rem}
-.pagination-wrapper{margin-top:2rem}
+.pagination-wrapper{margin-top:2rem;display:flex;justify-content:center}
+
+/* Pagination Styles */
+.pagination-wrapper{
+  margin-top:2rem;
+  display:flex;
+  justify-content:center;
+  flex-direction:column;
+  align-items:center;
+  gap:1rem;
+}
+.pagination-wrapper > *:not(.pagination-nav){
+  display:none !important;
+}
+.pagination-nav{margin:0;padding:0}
+.pagination-nav > *:not(.pagination){
+  display:none !important;
+}
+.pagination{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.375rem;
+  list-style:none;
+  margin:0;
+  padding:0;
+  flex-wrap:wrap;
+}
+.pagination-item{
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+.pagination-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:2.5rem;
+  height:2.5rem;
+  padding:.5rem;
+  border-radius:var(--radius);
+  font-weight:600;
+  font-size:1.25rem;
+  line-height:1;
+  color:var(--foreground);
+  background:var(--card);
+  border:1px solid var(--border);
+  text-decoration:none;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 10px 30px -22px rgba(0,0,0,.35);
+}
+.pagination-link:not(.pagination-link-disabled):not(.pagination-link-active){
+  font-size:.875rem;
+}
+.pagination-link::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(45deg,transparent,rgba(255,255,255,.1),transparent);
+  transform:translateX(-100%);
+  transition:transform .6s;
+}
+.pagination-link:hover::before{transform:translateX(100%)}
+.pagination-link:hover{
+  background:var(--muted);
+  transform:translateY(-2px);
+  box-shadow:0 4px 16px -4px rgba(0,0,0,.2);
+}
+.pagination-link-active{
+  background:var(--pokemon-red);
+  color:#fff;
+  border-color:var(--pokemon-red);
+  box-shadow:0 4px 20px -4px hsla(0,88%,51%,.4);
+  cursor:default;
+}
+.pagination-link-active:hover{
+  background:var(--pokemon-red);
+  box-shadow:0 8px 30px -6px hsla(0,88%,51%,.6);
+  transform:translateY(-2px);
+}
+.pagination-link-disabled{
+  background:var(--muted);
+  color:var(--muted-foreground);
+  border-color:var(--border);
+  cursor:not-allowed;
+  opacity:.5;
+  box-shadow:0 10px 30px -22px rgba(0,0,0,.35);
+}
+.pagination-link-disabled:hover{
+  background:var(--muted);
+  border-color:var(--border);
+  transform:none;
+  box-shadow:0 10px 30px -22px rgba(0,0,0,.35);
+}
+.pagination-link-disabled::before{display:none}
 
 .pill{display:inline-flex;align-items:center;padding:.45rem .75rem;border-radius:999px;background:var(--muted);font-weight:800;font-size:.85rem}
 

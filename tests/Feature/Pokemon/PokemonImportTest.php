@@ -5,6 +5,8 @@ namespace Tests\Feature\Pokemon;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Tests\Helpers\PokemonApiDataHelper;
 use Tests\TestCase;
 
 class PokemonImportTest extends TestCase
@@ -17,6 +19,10 @@ class PokemonImportTest extends TestCase
         $user = User::factory()->create();
         $user->roles()->attach($editorRole);
 
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/25' => Http::response(PokemonApiDataHelper::pikachuResponse(), 200),
+        ]);
+
         $response = $this->actingAs($user)->post('/pokemon/import/25');
 
         $response->assertStatus(200);
@@ -27,6 +33,10 @@ class PokemonImportTest extends TestCase
         $editorRole = Role::create(['name' => 'editor']);
         $user = User::factory()->create();
         $user->roles()->attach($editorRole);
+
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/25' => Http::response(PokemonApiDataHelper::pikachuResponse(), 200),
+        ]);
 
         $response = $this->actingAs($user)->post('/pokemon/import/25');
 
@@ -40,6 +50,10 @@ class PokemonImportTest extends TestCase
         $user = User::factory()->create();
         $user->roles()->attach($editorRole);
 
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/25' => Http::response(PokemonApiDataHelper::pikachuResponse(), 200),
+        ]);
+
         $response = $this->actingAs($user)->post('/pokemon/import/25');
 
         $response->assertStatus(200);
@@ -52,6 +66,10 @@ class PokemonImportTest extends TestCase
         $user = User::factory()->create();
         $user->roles()->attach($editorRole);
 
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/25' => Http::response(PokemonApiDataHelper::pikachuResponse(), 200),
+        ]);
+
         $response = $this->actingAs($user)->post('/pokemon/import/25');
 
         $response->assertStatus(200);
@@ -63,6 +81,10 @@ class PokemonImportTest extends TestCase
         $editorRole = Role::create(['name' => 'editor']);
         $user = User::factory()->create();
         $user->roles()->attach($editorRole);
+
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/25' => Http::response(PokemonApiDataHelper::pikachuResponse(), 200),
+        ]);
 
         $firstImport = $this->actingAs($user)->post('/pokemon/import/25');
         $firstImport->assertStatus(200);
@@ -78,6 +100,10 @@ class PokemonImportTest extends TestCase
         $user = User::factory()->create();
         $user->roles()->attach($editorRole);
 
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/99999' => Http::response(PokemonApiDataHelper::notFoundResponse(), 404),
+        ]);
+
         $response = $this->actingAs($user)->post('/pokemon/import/99999');
 
         $response->assertStatus(404);
@@ -90,6 +116,10 @@ class PokemonImportTest extends TestCase
         $user = User::factory()->create();
         $user->roles()->attach($editorRole);
 
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/0' => Http::response(PokemonApiDataHelper::serverErrorResponse(), 500),
+        ]);
+
         $response = $this->actingAs($user)->post('/pokemon/import/0');
 
         $response->assertStatus(500);
@@ -101,6 +131,10 @@ class PokemonImportTest extends TestCase
         $editorRole = Role::create(['name' => 'editor']);
         $user = User::factory()->create();
         $user->roles()->attach($editorRole);
+
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/25' => Http::response(PokemonApiDataHelper::pikachuResponse(), 200),
+        ]);
 
         $response = $this->actingAs($user)->post('/pokemon/import/25');
 
@@ -117,6 +151,10 @@ class PokemonImportTest extends TestCase
         $user = User::factory()->create();
         $user->roles()->attach($editorRole);
 
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/99999' => Http::response(PokemonApiDataHelper::notFoundResponse(), 404),
+        ]);
+
         $response = $this->actingAs($user)->post('/pokemon/import/99999');
 
         $response->assertSee('Pokémon não encontrado', false);
@@ -127,6 +165,10 @@ class PokemonImportTest extends TestCase
         $editorRole = Role::create(['name' => 'editor']);
         $user = User::factory()->create();
         $user->roles()->attach($editorRole);
+
+        Http::fake([
+            'https://pokeapi.co/api/v2/pokemon/25' => Http::response(PokemonApiDataHelper::timeoutResponse(), 504),
+        ]);
 
         $response = $this->actingAs($user)->post('/pokemon/import/25');
 

@@ -9,13 +9,13 @@
                 @foreach($favorites as $pokemon)
                     <div class="card pokemon-card">
                         <div class="pokemon-info">
-                            <h3 class="section-title">{{ $pokemon->name }}</h3>
-                            <p class="section-text">Altura: {{ $pokemon->height }}</p>
-                            <p class="section-text">Peso: {{ $pokemon->weight }}</p>
-                            <a href="{{ route('pokemon.show', $pokemon->id) }}" class="text-link">Ver detalhes</a>
+                            <h3 class="section-title">{{ $pokemon->formatted_name }}</h3>
+                            <p class="section-text">Altura: {{ $pokemon->height_in_meters }}</p>
+                            <p class="section-text">Peso: {{ $pokemon->weight_in_kilograms }}</p>
+                            <a href="{{ route('pokemon.show', $pokemon->api_id) }}" class="text-link">Ver detalhes</a>
                         </div>
                         @if($pokemon->sprite)
-                            <img src="{{ $pokemon->sprite }}" alt="{{ $pokemon->name }}" class="pokemon-sprite">
+                            <img src="{{ $pokemon->sprite }}" alt="{{ $pokemon->formatted_name }}" class="pokemon-sprite">
                         @endif
                     </div>
                 @endforeach

@@ -10,15 +10,15 @@
                 @foreach($favorites as $pokemon)
                     <div class="card pokemon-card" style="position: relative;">
                         <div class="pokemon-info">
-                            <h3 class="section-title">{{ $pokemon->name }}</h3>
-                            <a href="{{ route('pokemon.show', $pokemon->id) }}" class="text-link">Ver detalhes</a>
+                            <h3 class="section-title">{{ $pokemon->formatted_name }}</h3>
+                            <a href="{{ route('pokemon.show', $pokemon->api_id) }}" class="text-link">Ver detalhes</a>
                         </div>
                         @if($pokemon->sprite)
-                            <img src="{{ $pokemon->sprite }}" alt="{{ $pokemon->name }}" class="pokemon-sprite">
+                            <img src="{{ $pokemon->sprite }}" alt="{{ $pokemon->formatted_name }}" class="pokemon-sprite">
                         @endif
                         
                         @can('unfavorite', $pokemon)
-                            <form method="POST" action="{{ route('pokemon.unfavorite', $pokemon->id) }}" class="favorite-form" style="position: absolute; bottom: 0.5rem; right: 0.5rem;">
+                            <form method="POST" action="{{ route('pokemon.unfavorite', $pokemon->api_id) }}" class="favorite-form" style="position: absolute; bottom: 0.5rem; right: 0.5rem;">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" style="background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #FFD700; padding: 0; line-height: 1;">★</button>

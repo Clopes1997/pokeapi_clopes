@@ -36,4 +36,19 @@ class Pokemon extends Model
     {
         return $this->belongsToMany(User::class, 'favorites');
     }
+
+    public function getFormattedNameAttribute(): string
+    {
+        return ucfirst($this->name);
+    }
+
+    public function getHeightInMetersAttribute(): string
+    {
+        return number_format($this->height / 10, 2, ',', '.') . ' m';
+    }
+
+    public function getWeightInKilogramsAttribute(): string
+    {
+        return number_format($this->weight / 10, 2, ',', '.') . ' kg';
+    }
 }
